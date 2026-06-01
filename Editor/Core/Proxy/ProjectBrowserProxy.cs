@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
+using System.Linq;
 using System.Reflection;
 using UnityEditor;
+using UnityEngine;
 
 namespace LordSheo.Editor
 {
@@ -23,7 +25,11 @@ namespace LordSheo.Editor
 			lastFoldersField = type.FindFieldInfo_Instance("m_LastFolders");
 
 			getFolderInstanceIdMethod = type.FindMethodInfo_Static("GetFolderInstanceID", new Type[] { typeof(string) });
+#if UNITY_6000_4_OR_NEWER
+			setFolderSelectionMethod = type.FindMethodInfo_Instance("SetFolderSelection", new Type[] { typeof(EntityId[]), typeof(bool) });
+#else
 			setFolderSelectionMethod = type.FindMethodInfo_Instance("SetFolderSelection", new Type[] { typeof(int[]), typeof(bool) });
+#endif
 		}
 
 		public static EditorWindow GetLastBrowser()
@@ -37,11 +43,24 @@ namespace LordSheo.Editor
 
 		public static int GetFolderInstanceID(string folder)
 		{
+#if UNITY_6000_4_OR_NEWER
+			var result = getFolderInstanceIdMethod.Invoke(null, new object[] { folder });
+			return (int)EntityId.ToULong((EntityId)result);
+#else
 			return (int)getFolderInstanceIdMethod.Invoke(null, new object[] { folder });
+#endif
 		}
 		public static void SetFolderSelection(EditorWindow browser, int[] folderIds)
 		{
+#if UNITY_6000_4_OR_NEWER
+			var folderEntityIds = folderIds
+				.Select(i => EntityId.FromULong((ulong)i))
+				.ToArray();
+			
+			setFolderSelectionMethod.Invoke(browser, new object[] { folderEntityIds, true });
+#else
 			setFolderSelectionMethod.Invoke(browser, new object[] { folderIds, true });
+#endif
 		}
 	}
 }
