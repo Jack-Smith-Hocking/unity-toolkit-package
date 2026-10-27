@@ -20,9 +20,24 @@ namespace LordSheo
 
 		public static T Random<T>(this IList<T> source)
 		{
-			var index = UnityEngine.Random.Range(0, source.Count - 1);
+			var index = UnityEngine.Random.Range(0, source.Count);
 			return source[index];
 		}
+
+		public static void Shuffle<T>(this IList<T> source)
+		{
+			var count = source.Count;
+			
+			for (var i = 0; i < count; i++)
+			{
+				var rand = UnityEngine.Random.Range(0, count);
+				var current = source[i];
+				
+				source[i] = source[rand];
+				source[rand] = current;
+			}
+		}
+		
 		public static void AddRange<T>(HashSet<T> source, IEnumerable<T> collection)
 		{
 			foreach (var elem in collection)
